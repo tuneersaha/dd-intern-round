@@ -1,0 +1,41 @@
+# Set the base image
+FROM php:7.4-apache
+
+# Set the working directory
+WORKDIR /var/www/html
+
+# Set an argument for the WordPress version (replace with desired version)
+ARG WORDPRESS_VERSION=6.2.2
+
+# Copy the WordPress files to the container
+COPY . /var/www/html
+
+# Install dependencies and configure Apache
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libpng-dev \
+        libjpeg-dev \
+        libpq-dev \
+    && docker-php-ext-install -j$(nproc) \
+        gd \
+        mysqli \
+        opcache \
+        pdo_mysql \
+        pdo_pgsql \
+        pgsql \
+    && a2enmod rewrite \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && chown -R www-data:www-data /var/www/html
+
+# Set environment variables for WordPress
+ENV WORDPRESS_DB_HOST=wordpress-server29876.database.windows.net \
+    WORDPRESS_DB_NAME=wordpress-db \
+    WORDPRESS_DB_USER=adminuser \
+    WORDPRESS_DB_PASSWORD=@DminP@ssw0rd1
+
+# Set up the entrypoint
+ENTRYPOINT ["/var/www/html/entrypoint.sh"]
+
+# Set the default command for the container
+CMD ["apache2-foreground"]
